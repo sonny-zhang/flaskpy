@@ -2,6 +2,13 @@
 
 {% block title %}Flask{% endblock %}
 
+{% block head %}
+{{ super() }}
+<!--url_for函数，参数:文件夹名，文件名，返回:组合url-->
+<link rel="shortcut icon" href="{{ url_for('static', filename = 'favicon.ico')}}" type="image/x-icon">
+<link rel="icon" href="{{ url_for('static', filename = 'favicon.ico')}}" type="image/x-icon">
+{% endblock %}
+
 {% block navbar %}
 <div class="navbar navbar-inverse" role="navigation">
     <div class="container">
@@ -28,4 +35,9 @@
     <!--这是由衍生模板(子模板)定义-->
     {% block page_content %}{% endblock %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ moment.include_moment() }}
 {% endblock %}
