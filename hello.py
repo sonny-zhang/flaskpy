@@ -70,13 +70,13 @@ def index():
         if user is None:
             user = User(username=form.name.data)
             db.session.add(user)
+            db.session.commit()
             session['known'] = False
 
         else:
             session['known'] = True
         # 使用请求上下文的会话功能，就会避免post表单提交，然后刷新造成的提示“提交表单”的问题
         session['name'] = form.name.data
-        print(session['known'])
         form.name.data = ''
         # 重定向==redirect('/');使用url_for的原因:使用URL映射生成URL,保证URL和定义的路由兼容，修改路由名字后依然可用
         return redirect(url_for('index'))
