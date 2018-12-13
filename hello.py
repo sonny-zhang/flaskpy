@@ -9,6 +9,7 @@ from flask_mail import Mail, Message
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from datetime import datetime
+from threading import Thread
 import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -41,12 +42,19 @@ manager.add_command('db', MigrateCommand)
 mail = Mail(app)
 
 
-def send_mail(to, subject, template, **kwargs):
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
+
+def send_email(to, subject, template, **kwargs):
     msg = Message(app.config['FLASK_MAIL_SUBJECT_PREFIX'] + subject,
                   sender=app.config['MAIL_USERNAME'], recipients=[to])
     msg.body = render_template(template + '.txt', **kwargs)
     msg.html = render_template(template + '.html', **kwargs)
-    mail.send(msg)
+    thr = Thread(target=send_async_email, args=[app, msg])
+    thr.start()
+    return thr
 
 
 # 定义模型：一对多
@@ -93,7 +101,7 @@ def index():
             session['known'] = False
             flash('Looks like you have changed your name!')
             if app.config['FLASK_ADMIN']:
-                send_mail(app.config['FLASK_ADMIN'], 'New User',
+                send_email(app.config['FLASK_ADMIN'], 'New User',
                           'mail/new_user', user=user)
         else:
             session['known'] = True
