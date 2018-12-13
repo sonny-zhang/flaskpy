@@ -5,6 +5,7 @@ from flask_moment import Moment
 from flask_wtf import FlaskForm
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import MigrateCommand, Migrate
+from flask_mail import Mail, Message
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from datetime import datetime
@@ -19,6 +20,16 @@ app.config['SECRET_KEY'] = 'hard to guess string'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 # 如果设置成 True (默认情况)，Flask-SQLAlchemy 将会追踪对象的修改并且发送信号。这需要额外的内存， 如果不必要的可以禁用它。
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Email配置
+app.config['MAIL_SERVER'] = 'smtp.qq.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['FLASK_MAIL_SUBJECT_PREFIX'] = '[Flaskpy]'
+app.config['FLASK_MAIL_SENDER'] = 'Flasky Admin <758896823@qq.com>'
+app.config['FLASK_ADMIN'] = os.environ.get('FLASK_ADMIN')
+
 # 初始化bootstrap,然后就可以使用一个包含所有bootstrap文件的基模板
 bootstrap = Bootstrap(app)
 # Moment本地化时间
@@ -27,6 +38,15 @@ db = SQLAlchemy(app)
 manager = Manager(app)
 migrate = Migrate(app, db)
 manager.add_command('db', MigrateCommand)
+mail = Mail(app)
+
+
+def send_mail(to, subject, template, **kwargs):
+    msg = Message(app.config['FLASK_MAIL_SUBJECT_PREFIX'] + subject,
+                  sender=app.config['MAIL_USERNAME'], recipients=[to])
+    msg.body = render_template(template + '.txt', **kwargs)
+    msg.html = render_template(template + '.html', **kwargs)
+    mail.send(msg)
 
 
 # 定义模型：一对多
@@ -72,6 +92,9 @@ def index():
             db.session.commit()
             session['known'] = False
             flash('Looks like you have changed your name!')
+            if app.config['FLASK_ADMIN']:
+                send_mail(app.config['FLASK_ADMIN'], 'New User',
+                          'mail/new_user', user=user)
         else:
             session['known'] = True
         # 使用请求上下文的会话功能，就会避免post表单提交，然后刷新造成的提示“提交表单”的问题
@@ -99,4 +122,4 @@ def internal_server_error(e):
 
 
 if __name__ == '__main__':
-    manager.run()
+    app.run(debug=True)
