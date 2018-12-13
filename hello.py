@@ -4,30 +4,29 @@ from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_wtf import FlaskForm
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import MigrateCommand, Migrate
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from datetime import datetime
 import os
 
+basedir = os.path.abspath(os.path.dirname(__file__))
+
 # 初始化flask应用
 app = Flask(__name__)
 # 设置秘钥，生成令牌
 app.config['SECRET_KEY'] = 'hard to guess string'
-# 初始化bootstrap,然后就可以使用一个包含所有bootstrap文件的基模板
-bootstrap = Bootstrap(app)
-# manager = Manager(app)
-# Moment本地化时间
-moment = Moment(app)
-
-
-# ------初始化和配置数据库start---------
-basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 # 如果设置成 True (默认情况)，Flask-SQLAlchemy 将会追踪对象的修改并且发送信号。这需要额外的内存， 如果不必要的可以禁用它。
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+# 初始化bootstrap,然后就可以使用一个包含所有bootstrap文件的基模板
+bootstrap = Bootstrap(app)
+# Moment本地化时间
+moment = Moment(app)
 db = SQLAlchemy(app)
-# ------初始化和配置数据库end---------
+manager = Manager(app)
+migrate = Migrate(app, db)
+manager.add_command('db', MigrateCommand)
 
 
 # 定义模型：一对多
@@ -72,7 +71,7 @@ def index():
             db.session.add(user)
             db.session.commit()
             session['known'] = False
-
+            flash('Looks like you have changed your name!')
         else:
             session['known'] = True
         # 使用请求上下文的会话功能，就会避免post表单提交，然后刷新造成的提示“提交表单”的问题
@@ -100,4 +99,4 @@ def internal_server_error(e):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    manager.run()
