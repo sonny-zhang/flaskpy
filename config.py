@@ -14,13 +14,16 @@ class Config:
     FLASK_ADMIN = os.environ.get('FLASK_ADMIN')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    def init_app(self, app):
+    @staticmethod
+    def init_app(app):
+        '执行当前环境的配置初始化'
         pass
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or 'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
+                              'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
 
 
 class TestingConfig(Config):
@@ -33,7 +36,7 @@ class ProductionConfig(Config):
 
 
 config = {
-    'development' : DevelopmentConfig,
+    'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,
 
