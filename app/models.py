@@ -78,6 +78,7 @@ class User(UserMixin, db.Model):
 
     @staticmethod
     def reset_password(token, new_password):
+        """check token and add new_password"""
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
@@ -88,6 +89,28 @@ class User(UserMixin, db.Model):
             return False
         user.password = new_password
         db.session.add(user)
+        return True
+
+    def generate_email_change_token(self, new_mail, expiration=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        return s.dumps({'change_email': self.id, 'new_mail': new_mail})
+
+    def change_email(self, token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+            print(data)
+        except:
+            return False
+        if data.get('change_email') != self.id:
+            return False
+        new_email = data.get('new_mail')
+        if new_email is None:
+            return False
+        if self.query.filter_by(email=new_email).first() is not None:
+            return False
+        self.email = new_email
+        db.session.add(self)
         return True
 
     def __repr__(self):

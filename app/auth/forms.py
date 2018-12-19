@@ -6,10 +6,10 @@ from ..models import User
 
 
 class LoginForm(FlaskForm):
-    email = StringField('邮箱', validators=[DataRequired(), Length(1, 64), Email()])
-    password = PasswordField('密码', validators=[DataRequired()])
-    remember_me = BooleanField('记住密码')
-    submit = SubmitField('登录')
+    email = StringField('Email', validators=[DataRequired(), Length(1, 64), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    remember_me = BooleanField('Remember Password')
+    submit = SubmitField('Submit')
 
 
 class RegistrationForm(FlaskForm):
@@ -20,8 +20,8 @@ class RegistrationForm(FlaskForm):
                                                           'dots or underscores')])
     password = PasswordField('Password', validators=[DataRequired(), EqualTo('password2',
                                                                              message='Passwords must match.')])
-    password2 = PasswordField('Confirm password', validators=[DataRequired()])
-    submit = SubmitField('Register')
+    password2 = PasswordField('Confirm Password', validators=[DataRequired()])
+    submit = SubmitField('Submit')
 
     def validate_email(self, field):
         """Custom validation function, validate_ begins with a method followed by the field name,
@@ -37,20 +37,31 @@ class RegistrationForm(FlaskForm):
 
 
 class ChangePasswordForm(FlaskForm):
-    old_password = PasswordField('Old password', validators=[DataRequired()])
-    password = PasswordField('New password', validators=[DataRequired(), EqualTo('password2',
+    old_password = PasswordField('Old Password', validators=[DataRequired()])
+    password = PasswordField('New Password', validators=[DataRequired(), EqualTo('password2',
                                                                                  message='Passwords must match.')])
-    password2 = PasswordField('Confirm new password', validators=[DataRequired()])
-    submit = SubmitField('Update Password')
+    password2 = PasswordField('Confirm New Password', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
+class ChangeEmailForm(FlaskForm):
+    email = StringField('New Email', validators=[DataRequired(), Length(1, 64), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+    def validate_email(self, field):
+        if User.query.filter_by(email=field.data).first():
+            raise ValidationError('Email already registered.')
 
 
 class PasswordResetRequestForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Length(1, 64), Email()])
-    submit = SubmitField('提交')
+    submit = SubmitField('Submit')
 
 
 class PasswordResetForm(FlaskForm):
-    password = PasswordField('新密码', validators=[DataRequired(), EqualTo('password2',
-                                                                                 message='密码不一致！')])
-    password2 = PasswordField('确认密码', validators=[DataRequired()])
-    submit = SubmitField('提交')
+    password = PasswordField('Password', validators=[DataRequired(), EqualTo('password2',
+                                                                                 message='Passwords must match!')])
+    password2 = PasswordField('Confirm Password', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
