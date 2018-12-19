@@ -6,10 +6,10 @@ from ..models import User
 
 
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Length(1, 64), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    remember_me = BooleanField('Keep me logged in')
-    submit = SubmitField('Log in')
+    email = StringField('邮箱', validators=[DataRequired(), Length(1, 64), Email()])
+    password = PasswordField('密码', validators=[DataRequired()])
+    remember_me = BooleanField('记住密码')
+    submit = SubmitField('登录')
 
 
 class RegistrationForm(FlaskForm):
@@ -43,3 +43,14 @@ class ChangePasswordForm(FlaskForm):
     password2 = PasswordField('Confirm new password', validators=[DataRequired()])
     submit = SubmitField('Update Password')
 
+
+class PasswordResetRequestForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Length(1, 64), Email()])
+    submit = SubmitField('提交')
+
+
+class PasswordResetForm(FlaskForm):
+    password = PasswordField('新密码', validators=[DataRequired(), EqualTo('password2',
+                                                                                 message='密码不一致！')])
+    password2 = PasswordField('确认密码', validators=[DataRequired()])
+    submit = SubmitField('提交')
