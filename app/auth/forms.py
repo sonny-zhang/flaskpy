@@ -24,9 +24,22 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Register')
 
     def validate_email(self, field):
+        """Custom validation function, validate_ begins with a method followed by the field name,
+        which is called with the regular validation function.
+        """
         if User.query.filter_by(email=field.data).first():
+            #: validate/verification/authentication failed
             raise ValidationError('Email already registered.')
 
     def validate_username(self, field):
         if User.query.filter_by(username=field.data).first():
             raise ValidationError('Username already registered.')
+
+
+class ChangePasswordForm(FlaskForm):
+    old_password = PasswordField('Old password', validators=[DataRequired()])
+    password = PasswordField('New password', validators=[DataRequired(), EqualTo('password2',
+                                                                                 message='Passwords must match.')])
+    password2 = PasswordField('Confirm new password', validators=[DataRequired()])
+    submit = SubmitField('Update Password')
+

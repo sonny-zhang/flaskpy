@@ -16,7 +16,7 @@ class Config:
 
     @staticmethod
     def init_app(app):
-        '执行当前环境的配置初始化'
+        """执行当前环境的配置初始化"""
         pass
 
 
