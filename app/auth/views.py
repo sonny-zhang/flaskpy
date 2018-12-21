@@ -16,12 +16,13 @@ from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
 @auth.before_app_request
 def before_request():
     """拦截请求：用户已登录+用户未认证+请求不在蓝图中"""
-    if current_user.is_authenticated \
-            and not current_user.confirmed \
-            and request.endpoint \
-            and request.blueprint != 'auth' \
-            and request.endpoint != 'static':
-        return redirect(url_for('auth.unconfirmed'))
+    if current_user.is_authenticated:
+        current_user.ping()
+        if not current_user.confirmed \
+                and request.endpoint \
+                and request.blueprint != 'auth' \
+                and request.endpoint != 'static':
+            return redirect(url_for('auth.unconfirmed'))
 
 
 @auth.route('/unconfirmed')
