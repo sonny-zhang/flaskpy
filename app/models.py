@@ -7,11 +7,11 @@ from datetime import datetime
 
 
 class Permission:
-    FOLLOW = 0x01
-    COMMENT = 0x02
-    WRITE = 0x04
-    MODERATE = 0x08
-    ADMIN = 0x80
+    FOLLOW = 1
+    COMMENT = 2
+    WRITE = 4
+    MODERATE = 8
+    ADMIN = 16
 
 
 # 定义模型：一对多
@@ -21,23 +21,32 @@ class Role(db.Model):
     name = db.Column(db.String(64), unique=True)
     default = db.Column(db.Boolean, default=False, index=True)
     permissions = db.Column(db.Integer)
-    # 关系的面向对象视角，返回与role相关联用户组的列表，参数1:模型. 参数backref:向User模型添加role属性
-    users = db.relationship('User', backref='role')
+    users = db.relationship('User', backref='role', lazy='dynamic')
+
+    def __init__(self, **kwargs):
+        super(Role, self).__init__(**kwargs)
+        if self.permissions is None:
+            self.permissions = 0
 
     @staticmethod
     def insert_roles():
         roles = {
-            'User': (Permission.FOLLOW | Permission.COMMENT | Permission.WRITE, True),
-            'Moderator': (Permission.FOLLOW | Permission.COMMENT |
-                          Permission.WRITE | Permission.MODERATE, False),
-            'Administrator': (0xff, False)
+            'User': [Permission.FOLLOW, Permission.COMMENT, Permission.WRITE],
+            'Moderator': [Permission.FOLLOW, Permission.COMMENT,
+                          Permission.WRITE, Permission.MODERATE],
+            'Administrator': [Permission.FOLLOW, Permission.COMMENT,
+                              Permission.WRITE, Permission.MODERATE,
+                              Permission.ADMIN],
         }
+        default_role = 'User'
         for r in roles:
             role = Role.query.filter_by(name=r).first()
             if role is None:
                 role = Role(name=r)
-            role.permissions = roles[r][0]
-            role.default = roles[r][1]
+            role.reset_permissions()
+            for perm in roles[r]:
+                role.add_permission(perm)
+            role.default = (role.name == default_role)
             db.session.add(role)
         db.session.commit()
 
@@ -52,7 +61,7 @@ class Role(db.Model):
         if self.has_permission(perm):
             self.permissions -= perm
 
-    def reset_permission(self, perm):
+    def reset_permissions(self):
         self.permissions = 0
 
     def __repr__(self):
