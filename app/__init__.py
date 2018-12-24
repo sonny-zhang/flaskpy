@@ -12,6 +12,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from flask_login import LoginManager
 from config import config
+from flask_pagedown import PageDown
 
 
 #: 没有migrate和manager
@@ -19,6 +20,7 @@ bootstrap = Bootstrap()
 mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
+pagedown = PageDown()
 #: To initialize Flask-Login, you need these three sentences.
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
@@ -36,6 +38,7 @@ def create_app(config_name):
     moment.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
+    pagedown.init_app(app)
 
     # main blueprint
     from .main import main as main_blueprint
